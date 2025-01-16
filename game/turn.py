@@ -81,7 +81,7 @@ class Turn:
 
     def calculate_large_street(self):
         for i in range(0, 2):
-            if all(self.dice_values_count[i+j] > 0 for j in range (0, 3)):
+            if all(self.dice_values_count[i+j] > 0 for j in range (0, 5)):
                 return 40
         return 0
 
