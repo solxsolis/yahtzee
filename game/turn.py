@@ -1,5 +1,5 @@
-from dice import Die
-from categories import Category
+from game.dice import Die
+from game.categories import Category
 
 class Turn:
     def __init__(self, player):
@@ -38,7 +38,7 @@ class Turn:
         for i in range (0, 5):
             self.dice_values[i] = self.dice[i].get_value()
         for i in range (0, 6):
-            self.dice_values_count[i] += self.dice_values.count(i+1)
+            self.dice_values_count[i] = self.dice_values.count(i+1)
 
 
     def roll(self):
