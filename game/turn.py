@@ -2,7 +2,7 @@ from game.dice import Die
 from game.categories import Category
 
 class Turn:
-    def __init__(self, player):
+    def __init__(self, player, yahtzee=False):
         self.player = player
         self.rolls = 3
         self.dice = []
@@ -15,6 +15,7 @@ class Turn:
         self.dice_values_count = []
         for _ in range (0, 6):
             self.dice_values_count.append(0)
+        self.yahtzee = yahtzee
 
     def get_player(self):
         return self.player
@@ -30,6 +31,9 @@ class Turn:
 
     def get_dice_values_count(self):
         return self.dice_values_count
+
+    def get_yahtzee(self):
+        return self.yahtzee
 
     def toggle(self, idx):
         self.dice[idx].toggle()
@@ -84,6 +88,38 @@ class Turn:
             if all(self.dice_values_count[i+j] > 0 for j in range (0, 5)):
                 return 40
         return 0
+
+    def get_score(self, cat):
+        add = 0
+        if self.calculate_xn(5) == 50:
+            add = 50
+        if cat == Category.ONE:
+            return self.calculate_digits(1) + add
+        elif cat == Category.TWO:
+            return self.calculate_digits(2) + add
+        elif cat == Category.THREE:
+            return self.calculate_digits(3) + add
+        elif cat == Category.FOUR:
+            return self.calculate_digits(4) + add
+        elif cat == Category.FIVE:
+            return self.calculate_digits(5) + add
+        elif cat == Category.SIX:
+            return self.calculate_digits(6) + add
+        elif cat == Category.X3:
+            return self.calculate_xn(3) + add
+        elif cat == Category.X4:
+            return self.calculate_xn(4) + add
+        elif cat == Category.HOUSE:
+            return self.calculate_house() + add
+        elif cat == Category.SMALL_STREET:
+            return self.calculate_small_street() + add
+        elif cat == Category.LARGE_STREET:
+            return self.calculate_large_street() + add
+        elif cat == Category.YAHTZEE:
+            return self.calculate_xn(5)
+        elif cat == Category.CHANCE:
+            return self.calculate_sum() + add
+
 
 
 
