@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock, mock_open
 from game.turn import Turn
 from game.dice import Die
+from game.categories import Category
 
 def test_init():
     turn = Turn("human")
@@ -340,3 +341,70 @@ def test_calculate_large_street():
     turn.update_values()
 
     assert turn.calculate_large_street() == 0
+
+def test_get_score():
+    turn = Turn("human")
+    mocked_values = [1, 1, 2, 2, 3]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.ONE) == 2
+    assert turn.get_score(Category.TWO) == 4
+    assert turn.get_score(Category.THREE) == 3
+
+    mocked_values = [4, 5, 5, 6, 6]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.FOUR) == 4
+    assert turn.get_score(Category.FIVE) == 10
+    assert turn.get_score(Category.SIX) == 12
+
+    mocked_values = [5, 5, 5, 5, 6]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.X3) == 26
+
+    mocked_values = [5, 6, 6, 6, 6]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.X4) == 29
+
+    mocked_values = [5, 5, 5, 6, 6]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.HOUSE) == 25
+
+    mocked_values = [1, 2, 3, 4, 5]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.SMALL_STREET) == 30
+    assert turn.get_score(Category.LARGE_STREET) == 40
+
+    mocked_values = [1, 1, 1, 1, 1]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.YAHTZEE) == 50
+    assert turn.get_score(Category.CHANCE) == 5
+
+def test_get_score_yahtzee():
+    turn = Turn("human", True)
+    mocked_values = [1, 1, 1, 1, 1]
+    for i, die in enumerate(turn.get_dice()):
+        die.get_value = MagicMock(return_value=mocked_values[i])
+    turn.update_values()
+
+    assert turn.get_score(Category.ONE) == 55
+    assert turn.get_score(Category.HOUSE) == 50
