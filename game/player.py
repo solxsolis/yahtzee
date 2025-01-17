@@ -1,5 +1,6 @@
 from game.board import Board
 from game.categories import Category
+from game.turn import Turn
 from game.exceptions import *
 
 class Player:
@@ -8,6 +9,7 @@ class Player:
         self.board = Board()
         self.active = False
         self.turns = 13
+        self.current_turn = None
 
     def get_name(self):
         return self.name
@@ -21,23 +23,25 @@ class Player:
     def get_turns(self):
         return self.turns
 
+    def get_current_turn(self):
+        return self.current_turn
+
     def start_turn(self):
         if self.turns <= 0:
-            raise NoTurnsLeftError(self)
+            raise NoTurnsLeftError(self.get_name())
         if not self.active:
             self.active = True
             self.turns -= 1
+            self.current_turn = Turn()
 
     def end_turn(self):
         if self.active:
             self.active = False
+            self.current_turn = None
 
     def set_score(self, category, score):
         try:
             self.board.add_score(category, score)
         except CategoryPlayedError as e:
             print(e)
-
-
-
 

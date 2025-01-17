@@ -1,5 +1,4 @@
 from game.categories import Category
-from game.player import Player
 
 class CategoryPlayedError(Exception):
     def __init__(self, category):
@@ -7,4 +6,8 @@ class CategoryPlayedError(Exception):
 
 class NoTurnsLeftError(Exception):
     def __init__(self, player):
-        super().__init__(f"Player '{player.name}' has no turns left.")
+        super().__init__(f"Player '{player}' has no turns left.")
+
+class CategoryDoesNotExistError(Exception):
+    def __init__(self, category):
+        super().__init__(f"Category '{category}' does not exist.")

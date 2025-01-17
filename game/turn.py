@@ -2,8 +2,7 @@ from game.dice import Die
 from game.categories import Category
 
 class Turn:
-    def __init__(self, player, yahtzee=False):
-        self.player = player
+    def __init__(self, yahtzee=False):
         self.rolls = 3
         self.dice = []
         for idx in range (0, 5):
@@ -17,8 +16,6 @@ class Turn:
             self.dice_values_count.append(0)
         self.yahtzee = yahtzee
 
-    def get_player(self):
-        return self.player
 
     def get_rolls(self):
         return self.rolls
