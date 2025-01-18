@@ -25,10 +25,10 @@ class PlayerWindow(tk.Toplevel):
         dice_title = tk.Label(self.dice_frame, text=f"{self.player.name}'s Dice", font=("Helvetica", 14))
         dice_title.grid(row=0, column=0, columnspan=5, pady=5)
 
-        self.dice_labels = []
         for i in range(5):
-            lbl = tk.Label(self.dice_frame, text="0", width=4, relief="solid", font=("Helvetica", 16))
+            lbl = tk.Label(self.dice_frame, text="", width=4, relief="solid", font=("Helvetica", 16))
             lbl.grid(row=1, column=i, padx=5)
+            lbl.bind("<Button-1>", lambda e, idx=i: self.toggle_die(idx))
             self.dice_labels.append(lbl)
 
         self.btn_frame = tk.Frame(self)
@@ -61,8 +61,6 @@ class PlayerWindow(tk.Toplevel):
         opponent_name = opponent.name if opponent else "Opponent"
         tk.Label(self.sb_frame, text=opponent_name, font=("Helvetica", 12, "bold")).grid(row=1, column=2, padx=5, sticky="w")
 
-        self.score_labels = {}
-
         categories = list(Category.__members__.keys())
 
         row_index = 2
@@ -78,6 +76,15 @@ class PlayerWindow(tk.Toplevel):
 
             self.score_labels[cat_name] = (lbl_player_score, lbl_opp_score)
             row_index += 1
+
+        self.running_score_label = tk.Label(self.sb_frame, text="Score:", font=("Helvetica", 12, "bold"))
+        self.running_score_label.grid(row=row_index, column=0, padx=5, pady=5, sticky="e")
+
+        self.running_score_player = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+        self.running_score_player.grid(row=row_index, column=1, padx=5, pady=5, sticky="e")
+
+        self.running_score_opponent = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+        self.running_score_opponent.grid(row=row_index, column=2, padx=5, pady=5, sticky="e")
 
     def toggle_die(self, idx):
         if not self.is_player_turn():
@@ -179,12 +186,18 @@ class PlayerWindow(tk.Toplevel):
             pscore = player_scores[i]
             oscore = opp_scores[i] if i < len(opp_scores) else 0
 
-            pscore_str = "" if not pscore else str(pscore)
-            oscore_str = "" if not oscore else str(oscore)
+            pscore_str = "" if pscore is None else str(pscore)
+            oscore_str = "" if oscore is None else str(oscore)
 
             lbl_player, lbl_opp = self.score_labels[cat_name]
             lbl_player.config(text=pscore_str)
             lbl_opp.config(text=oscore_str)
+
+        player_total = sum(s for s in player_scores if s is not None)
+        opp_total = sum(s for s in opp_scores if s is not None)
+
+        self.running_score_player.config(text=str(player_total) if player_total else "0")
+        self.running_score_opponent.config(text=str(opp_total) if opp_total else "0")
 
     def get_opponent(self):
         for p in self.game.get_players():
