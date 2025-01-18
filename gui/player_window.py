@@ -125,10 +125,15 @@ class PlayerWindow(tk.Toplevel):
         self.running_score_opponent.grid(row=row_index, column=2, padx=5, pady=5)
 
     def update_button_states(self):
+        print(f"updating button states for {self.player.name}'s scoreboard")
         if self.game.get_current_player() != self.player:
             self.roll_btn.config(state="disabled")
             self.play_btn.config(state="disabled")
+            print(f'not {self.player.name} turn')
             return
+
+        if not self.player.get_current_turn:
+            print(f'{self.player.name} has no turn')
 
         if self.player.get_current_turn() and self.player.get_current_turn().get_rolls() > 0:
             self.roll_btn.config(state="normal")
@@ -235,10 +240,13 @@ class PlayerWindow(tk.Toplevel):
         self.update_dice_display()
 
         winner, scores = self.game.next_turn()
+        for w in self.master.player_windows:
+            if w != self and not winner:
+                w.player.start_turn()
+                w.update_scoreboard()
+            w.update_button_states()
         if winner or self.game.get_state() == "finished":
             self.show_end_game_message(winner, scores)
-
-        self.update_button_states()
 
     def get_category_labels(self, cat_name):
         return self.score_labels.get(cat_name, (None, None, None))

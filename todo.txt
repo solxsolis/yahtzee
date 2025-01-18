@@ -1,6 +1,6 @@
 gui:
-    -add background
     -input of player name
+    -more windows
 
 connection:
     -logging in

@@ -23,6 +23,7 @@ class Game:
     def start_game(self):
         if self.state != "active":
             self.state = "active"
+            self.current_player.start_turn()
 
 
     def play_turn(self):
@@ -37,7 +38,6 @@ class Game:
             self.rounds += 1
         else:
             self.current_player = self.players[current_index + 1]
-
 
         if self.rounds > 13:
             winner, scores = self.end_game()
