@@ -23,9 +23,12 @@ class PlayerWindow(tk.Toplevel):
         self.left_cats = list(Category.__members__.keys())[:6]
         self.right_cats = list(Category.__members__.keys())[6:]
 
+        self.configure(bg="#addbf7")
+
         self.create_widgets()
         self.update_scoreboard()
         self.update_dice_display()
+        self.update_button_states()
 
     def create_widgets(self):
 
@@ -34,10 +37,10 @@ class PlayerWindow(tk.Toplevel):
             dice_img = tk.PhotoImage(file=image_file)
             self.dice_images.append(dice_img)
 
-        self.dice_frame = tk.Frame(self)
+        self.dice_frame = tk.Frame(self, bg="#addbf7")
         self.dice_frame.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
-        dice_title = tk.Label(self.dice_frame, text=f"{self.player.name}'s Dice", font=("Helvetica", 14))
+        dice_title = tk.Label(self.dice_frame, text=f"{self.player.name}'s Dice", font=("Helvetica", 14), bg="#addbf7")
         dice_title.grid(row=0, column=0, columnspan=5, pady=5)
 
         blank_file = f"images/blank.png"
@@ -48,31 +51,31 @@ class PlayerWindow(tk.Toplevel):
             lbl.bind("<Button-1>", lambda e, idx=i: self.toggle_die(idx))
             self.dice_labels.append(lbl)
 
-        self.btn_frame = tk.Frame(self)
+        self.btn_frame = tk.Frame(self, bg="#addbf7")
         self.btn_frame.grid(row=1, column=0, columnspan=3, pady=5)
 
-        self.roll_btn = tk.Button(self.btn_frame, text="Roll", command=self.roll_dice)
+        self.roll_btn = tk.Button(self.btn_frame, text="Roll", bg='#8bd1fc', font=("Helvetica", 9, "bold"), command=self.roll_dice)
         self.roll_btn.grid(row=0, column=0, padx=10)
 
-        self.play_btn = tk.Button(self.btn_frame, text="Play", command=self.play_category)
+        self.play_btn = tk.Button(self.btn_frame, text="Play", bg='#8bd1fc',font=("Helvetica",9,"bold"), command=self.play_category)
         self.play_btn.grid(row=0, column=1, padx=10)
 
-        self.rolls_left_label = tk.Label(self.btn_frame, text="Rolls Left: 3", font=("Helvetica", 10))
+        self.rolls_left_label = tk.Label(self.btn_frame, text="Rolls Left: 3", font=("Helvetica", 10), bg="#addbf7")
         self.rolls_left_label.grid(row=0, column=2, padx=10)
 
-        self.sb_frame = tk.Frame(self, relief="groove", borderwidth=2)
+        self.sb_frame = tk.Frame(self, relief="groove", borderwidth=2, bg="#cde9fa")
         self.sb_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
 
-        sb_title = tk.Label(self.sb_frame, text=f"{self.player.name}'s Scoreboard", font=("Helvetica", 14))
+        sb_title = tk.Label(self.sb_frame, text=f"{self.player.name}'s Scoreboard", font=("Helvetica", 14), bg="#cde9fa")
         sb_title.grid(row=0, column=0, columnspan=6, pady=5)
 
-        tk.Label(self.sb_frame, text="Category", font=("Helvetica", 12, "bold")).grid(row=1, column=0, padx=5)
-        tk.Label(self.sb_frame, text=self.player.name, font=("Helvetica", 12, "bold")).grid(row=1, column=1, padx=5)
-        tk.Label(self.sb_frame, text="Opponent", font=("Helvetica", 12, "bold")).grid(row=1, column=2, padx=5)
+        tk.Label(self.sb_frame, text="Category", font=("Helvetica", 12, "bold"), bg="#cde9fa").grid(row=1, column=0, padx=5)
+        tk.Label(self.sb_frame, text="You", font=("Helvetica", 12, "bold"), bg="#cde9fa").grid(row=1, column=1, padx=5)
+        tk.Label(self.sb_frame, text="Opponent", font=("Helvetica", 12, "bold"), bg="#cde9fa").grid(row=1, column=2, padx=5)
 
-        tk.Label(self.sb_frame, text="Category", font=("Helvetica", 12, "bold")).grid(row=1, column=3, padx=5)
-        tk.Label(self.sb_frame, text=self.player.name, font=("Helvetica", 12, "bold")).grid(row=1, column=4, padx=5)
-        tk.Label(self.sb_frame, text="Opponent", font=("Helvetica", 12, "bold")).grid(row=1, column=5, padx=5)
+        tk.Label(self.sb_frame, text="Category", font=("Helvetica", 12, "bold"), bg="#cde9fa").grid(row=1, column=3, padx=5)
+        tk.Label(self.sb_frame, text="You", font=("Helvetica", 12, "bold"), bg="#cde9fa").grid(row=1, column=4, padx=5)
+        tk.Label(self.sb_frame, text="Opponent", font=("Helvetica", 12, "bold"), bg="#cde9fa").grid(row=1, column=5, padx=5)
 
         row_index = 2
         max_rows = len(self.right_cats)
@@ -112,7 +115,7 @@ class PlayerWindow(tk.Toplevel):
             self.score_labels[right_cat_name] = (right_cat_button, right_lbl_player_score, right_lbl_opp_score)
             row_index += 1
 
-        self.running_score_label = tk.Label(self.sb_frame, text="Score:", font=("Helvetica", 12, "bold"))
+        self.running_score_label = tk.Label(self.sb_frame, text="Score:", font=("Helvetica", 12, "bold"), bg="#cde9fa")
         self.running_score_label.grid(row=row_index, column=0, padx=5, pady=5)
 
         self.running_score_player = tk.Label(self.sb_frame, text="", width=6, relief="ridge")
@@ -120,6 +123,22 @@ class PlayerWindow(tk.Toplevel):
 
         self.running_score_opponent = tk.Label(self.sb_frame, text="", width=6, relief="ridge")
         self.running_score_opponent.grid(row=row_index, column=2, padx=5, pady=5)
+
+    def update_button_states(self):
+        if self.game.get_current_player() != self.player:
+            self.roll_btn.config(state="disabled")
+            self.play_btn.config(state="disabled")
+            return
+
+        if self.player.get_current_turn() and self.player.get_current_turn().get_rolls() > 0:
+            self.roll_btn.config(state="normal")
+        else:
+            self.roll_btn.config(state="disabled")
+
+        if self.player.get_current_turn() and self.player.get_current_turn().get_rolls() < 3:
+            self.play_btn.config(state="normal")
+        else:
+            self.play_btn.config(state="disabled")
 
     def select_category(self, cat_name):
         if not self.is_player_turn():
@@ -176,6 +195,8 @@ class PlayerWindow(tk.Toplevel):
         except NoRollsLeftError as e:
             messagebox.showerror("No rolls left", str(e))
 
+        self.update_button_states()
+
     def play_category(self):
 
         if not self.is_player_turn():
@@ -216,6 +237,8 @@ class PlayerWindow(tk.Toplevel):
         winner, scores = self.game.next_turn()
         if winner or self.game.get_state() == "finished":
             self.show_end_game_message(winner, scores)
+
+        self.update_button_states()
 
     def get_category_labels(self, cat_name):
         return self.score_labels.get(cat_name, (None, None, None))
