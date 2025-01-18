@@ -1,7 +1,6 @@
 gui:
     -add background
     -input of player name
-    -scores in squares
 
 connection:
     -logging in
