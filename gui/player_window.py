@@ -40,6 +40,9 @@ class PlayerWindow(tk.Toplevel):
         self.play_btn = tk.Button(self.btn_frame, text="Play", command=self.play_category)
         self.play_btn.grid(row=0, column=1, padx=10)
 
+        self.rolls_left_label = tk.Label(self.btn_frame, text="Rolls Left: 3", font=("Helvetica", 10))
+        self.rolls_left_label.grid(row=0, column=2, padx=10)
+
         cat_label = tk.Label(self.btn_frame, text="Select Category:")
         cat_label.grid(row=1, column=0, sticky="e")
 
@@ -103,6 +106,8 @@ class PlayerWindow(tk.Toplevel):
         try:
             self.player.current_turn.roll()
             self.update_dice_display()
+            rolls_left = self.player.get_current_turn().get_rolls()
+            self.rolls_left_label.config(text=f"Rolls left: {rolls_left}")
         except NoRollsLeftError as e:
             messagebox.showerror("No rolls left", str(e))
 
