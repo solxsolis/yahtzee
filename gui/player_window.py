@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from game.categories import Category
-from game.exceptions import CategoryPlayedError, NoRollsLeftError
+from game.exceptions import CategoryPlayedError, NoRollsLeftError, ScoringError
 
 
 class PlayerWindow(tk.Toplevel):
@@ -13,6 +13,10 @@ class PlayerWindow(tk.Toplevel):
         self.title(f"Yahtzee - {self.player.name}")
         self.dice_labels = []
         self.score_labels = {}
+        self.category_buttons = {}
+
+        self.selected_category = None
+        self.previewed_score = 0
 
         self.create_widgets()
         self.update_scoreboard()
@@ -43,14 +47,6 @@ class PlayerWindow(tk.Toplevel):
         self.rolls_left_label = tk.Label(self.btn_frame, text="Rolls Left: 3", font=("Helvetica", 10))
         self.rolls_left_label.grid(row=0, column=2, padx=10)
 
-        cat_label = tk.Label(self.btn_frame, text="Select Category:")
-        cat_label.grid(row=1, column=0, sticky="e")
-
-        self.cat_var = tk.StringVar(value="CHOOSE")
-        cat_options = list(Category.__members__.keys())
-        self.cat_cb = ttk.Combobox(self.btn_frame, textvariable=self.cat_var, values=cat_options, state="readonly")
-        self.cat_cb.grid(row=1, column=1, padx=5, pady=5, sticky="w")
-
         self.sb_frame = tk.Frame(self, relief="groove", borderwidth=2)
         self.sb_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
 
@@ -68,8 +64,8 @@ class PlayerWindow(tk.Toplevel):
 
         row_index = 2
         for cat_name in categories:
-            cat_label = tk.Label(self.sb_frame, text=cat_name, width=12, relief="ridge")
-            cat_label.grid(row=row_index, column=0, padx=5, pady=2, sticky="w")
+            cat_button = tk.Button(self.sb_frame, text=cat_name, width=12, relief="ridge", command=lambda c=cat_name: self.select_category(c))
+            cat_button.grid(row=row_index, column=0, padx=5, sticky="w")
 
             lbl_player_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
             lbl_player_score.grid(row=row_index, column=1, padx=5, pady=2, sticky="e")
@@ -77,7 +73,7 @@ class PlayerWindow(tk.Toplevel):
             lbl_opp_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
             lbl_opp_score.grid(row=row_index, column=2, padx=5, pady=2, sticky="e")
 
-            self.score_labels[cat_name] = (lbl_player_score, lbl_opp_score)
+            self.score_labels[cat_name] = (cat_button, lbl_player_score, lbl_opp_score)
             row_index += 1
 
         self.running_score_label = tk.Label(self.sb_frame, text="Score:", font=("Helvetica", 12, "bold"))
@@ -88,6 +84,39 @@ class PlayerWindow(tk.Toplevel):
 
         self.running_score_opponent = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
         self.running_score_opponent.grid(row=row_index, column=2, padx=5, pady=5, sticky="e")
+
+    def select_category(self, cat_name):
+        if not self.is_player_turn():
+            return
+        if not self.player.get_current_turn():
+            return
+
+        old_category = self.selected_category
+        if old_category and old_category != cat_name:
+            self.revert_old_preview(old_category)
+
+        self.selected_category = cat_name
+        self.previewed_score = 0
+
+        try:
+            chosen_cat = Category.__members__[cat_name]
+            potential_score = self.player.get_current_turn().get_score(chosen_cat)
+            self.previewed_score = potential_score
+
+            _, lbl_player, _ = self.get_category_labels(cat_name)
+            lbl_player.config(text=str(potential_score), fg="gray")
+
+        except ScoringError as e:
+            pass
+
+    def revert_old_preview(self, old_cat):
+        cat_list = list(Category.__members__.keys())
+        old_idx = cat_list.index(old_cat)
+        old_score = self.player.get_board().get_categories_score()[old_idx]
+
+        if old_score is None:
+            _, lbl_player, _ = self.score_labels[old_cat]
+            lbl_player.config(text="", fg="black")
 
     def toggle_die(self, idx):
         if not self.is_player_turn():
@@ -120,35 +149,41 @@ class PlayerWindow(tk.Toplevel):
             messagebox.showerror("Error", "No current turn. Roll first.")
             return
 
-        cat_name = self.cat_var.get()
-        if cat_name not in Category.__members__:
+        if not self.selected_category:
+            messagebox.showerror("Error", "No category selected.")
+            return
+
+        cat_name = self.selected_category
+        chosen_cat = Category.__members__.get(cat_name, None)
+        if not chosen_cat:
             messagebox.showerror("Error", f"Invalid category: {cat_name}")
             return
 
-        chosen_cat = Category.__members__[cat_name]
 
         try:
-            score = self.player.current_turn.get_score(chosen_cat)
-        except Exception as e:
+            self.player.set_score(chosen_cat, self.previewed_score)
+        except CategoryPlayedError as e:
             messagebox.showerror("Scoring Error", str(e))
             return
 
-        try:
-            self.player.set_score(chosen_cat, score)
-            messagebox.showinfo("Category Played", f"You scored {score} in {cat_name}!")
-        except CategoryPlayedError as ce:
-            messagebox.showerror("Category Error", str(ce))
-            return
+        cat_button, lbl_player_score, lbl_opp_score = self.score_labels[cat_name]
+        lbl_player_score.config(text=str(self.previewed_score), fg="black")
+        cat_button.config(state="disabled")
+
 
         self.player.end_turn()
+        self.selected_category = None
+        self.previewed_score = None
         self.update_scoreboard()
         self.update_dice_display()
 
         winner, scores = self.game.next_turn()
         if winner or self.game.get_state() == "finished":
             self.show_end_game_message(winner, scores)
-        else:
-            messagebox.showinfo("Turn Over", f"{self.player.name} finished. Now it's {self.game.current_player.name}'s turn.")
+
+    def get_category_labels(self, cat_name):
+        return self.score_labels.get(cat_name, (None, None, None))
+
 
     def show_end_game_message(self, winner, scores):
         lines = ["Final Scores: \n"]
@@ -194,7 +229,7 @@ class PlayerWindow(tk.Toplevel):
             pscore_str = "" if pscore is None else str(pscore)
             oscore_str = "" if oscore is None else str(oscore)
 
-            lbl_player, lbl_opp = self.score_labels[cat_name]
+            _, lbl_player, lbl_opp = self.score_labels[cat_name]
             lbl_player.config(text=pscore_str)
             lbl_opp.config(text=oscore_str)
 

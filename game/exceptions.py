@@ -15,3 +15,7 @@ class CategoryDoesNotExistError(Exception):
 class NoRollsLeftError(Exception):
     def __init__(self, message="No rolls left."):
         super().__init__(message)
+
+class ScoringError(Exception):
+    def __init__(self, message = "Scoring error"):
+        super().__init__(message)
