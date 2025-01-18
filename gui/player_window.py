@@ -12,7 +12,7 @@ class PlayerWindow(tk.Toplevel):
 
         self.title(f"Yahtzee - {self.player.name}")
         self.dice_labels = []
-        self.category_labels = []
+        self.score_labels = {}
 
         self.create_widgets()
         self.update_scoreboard()
@@ -50,24 +50,39 @@ class PlayerWindow(tk.Toplevel):
         )
         self.cat_combobox.pack(side="left", padx=5)
 
-        score_frame = tk.Frame(self, relief="groove", borderwidth=2)
-        score_frame.pack(pady=5, fill="both", expand=True)
-        tk.Label(score_frame, text=f"{self.player.name}'s Scoreboard", font=("Helvetica", 14)).pack()
+        sb_frame = tk.Frame(self, relief="groove", borderwidth=2)
+        sb_frame.pack(pady=5, fill="both", expand=True)
+        title_label = tk.Label(sb_frame, text=f"{self.player.name}'s Scoreboard", font=("Helvetica", 14))
+        title_label.pack(pady=5)
 
-        self.sb_list_frame = tk.Frame(score_frame)
-        self.sb_list_frame.pack(padx=5, pady=5, fill="x")
+        header_row = tk.Frame(sb_frame)
+        header_row.pack(fill="x")
 
-        for idx, cat_name in enumerate(Category.__members__.keys()):
-            row_frame = tk.Frame(self.sb_list_frame)
-            row_frame.pack(fill="x")
+        tk.Label(header_row, text="Category", width=12, anchor="w", font=("Helvetica", 12, "bold")).pack(side="left")
+        tk.Label(header_row, text=self.player.name, width=12, anchor="center", font=("Helvetica", 12, "bold")).pack(side="left", padx=5)
 
-            lbl_cat = tk.Label(row_frame, text=cat_name, width=12, anchor="w")
+        opp = self.get_opponent()
+        opp_name = opp.name if opp else "Opponent"
+        tk.Label(header_row, text=opp_name, width=12, anchor="center", font=("Helvetica", 12, "bold")).pack(side="left", padx=5)
+
+        self.table_frame = tk.Frame(sb_frame)
+        self.table_frame.pack(fill="x", padx=5, pady=5)
+
+
+        for cat_name in Category.__members__.keys():
+            row_frame = tk.Frame(self.table_frame)
+            row_frame.pack(fill="x", pady=2)
+
+            lbl_cat = tk.Label(row_frame, text=cat_name, width=12, anchor="w", relief="ridge")
             lbl_cat.pack(side="left")
 
-            lbl_score = tk.Label(row_frame, text="0", width=4, anchor="e")
-            lbl_score.pack(side="right", padx=10)
+            lbl_player_score = tk.Label(row_frame, text="", width=6, anchor="e", relief="ridge")
+            lbl_player_score.pack(side="left", padx=5)
 
-            self.category_labels.append(lbl_score)
+            lbl_opp_score = tk.Label(row_frame, text="", width=6, anchor="e", relief="ridge")
+            lbl_opp_score.pack(side="left", padx=5)
+
+            self.score_labels[cat_name] = (lbl_player_score, lbl_opp_score)
 
     def toggle_die(self, idx):
         if not self.is_player_turn():
@@ -160,10 +175,27 @@ class PlayerWindow(tk.Toplevel):
                 lbl.config(bg="white")
 
     def update_scoreboard(self):
-        scores = self.player.board.categories_score
-        for i, lbl in enumerate(self.category_labels):
-            if i < len(scores):
-                lbl.config(text=str(scores[i]))
+        player_scores = self.player.board.categories_score
+        opponent = self.get_opponent()
+        opp_scores = opponent.board.categories_score if opponent else []
+
+        cat_list = list(Category.__members__.keys())
+        for i, cat_name in enumerate(cat_list):
+            pscore = player_scores[i]
+            oscore = opp_scores[i] if i < len(opp_scores) else 0
+
+            pscore_str = "" if not pscore else str(pscore)
+            oscore_str = "" if not oscore else str(oscore)
+
+            lbl_player, lbl_opp = self.score_labels[cat_name]
+            lbl_player.config(text=pscore_str)
+            lbl_opp.config(text=oscore_str)
+
+    def get_opponent(self):
+        for p in self.game.get_players():
+            if p != self.player:
+                return p
+        return None
 
     def is_player_turn(self):
         if self.game.current_player != self.player:
