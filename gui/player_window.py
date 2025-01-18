@@ -122,8 +122,27 @@ class PlayerWindow(tk.Toplevel):
         self.update_scoreboard()
         self.update_dice_display()
 
-        self.game.next_turn()
-        messagebox.showinfo("Turn Over", f"{self.player.name} finished. Now it's {self.game.current_player.name}'s turn.")
+        winner, scores = self.game.next_turn()
+        if winner or self.game.get_state() == "finished":
+            self.show_end_game_message(winner, scores)
+        else:
+            messagebox.showinfo("Turn Over", f"{self.player.name} finished. Now it's {self.game.current_player.name}'s turn.")
+
+    def show_end_game_message(self, winner, scores):
+        lines = ["Final Scores: \n"]
+        for i in range(0,2):
+            lines.append(f"{self.game.get_players()[i].get_name()}: {scores[i]}")
+        if winner:
+            lines.append(f"Winner: {winner.get_name()}")
+        else:
+            lines.append(f"Draw")
+
+        messagebox.showinfo("Game Over", "\n".join(lines))
+
+        for w in self.master.player_windows:
+            w.destroy()
+        self.master.destroy()
+
 
     def update_dice_display(self):
         if not self.player.current_turn:

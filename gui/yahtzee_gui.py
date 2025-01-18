@@ -29,3 +29,5 @@ class YahtzeeGUI(tk.Tk):
 
     def quit_game(self):
         self.destroy()
+
+

@@ -40,7 +40,9 @@ class Game:
 
 
         if self.rounds > 13:
-            self.end_game()
+            winner, scores = self.end_game()
+            return (winner, scores)
+        return (None, None)
 
     def end_game(self):
         player_scores = []
@@ -54,7 +56,7 @@ class Game:
             winner = self.players[1]
 
         self.state = "finished"
-        return winner
+        return winner, player_scores
 
 
 
