@@ -1,11 +1,10 @@
-from game.dice import Die
 from game.turn import Turn
 from game.player import Player
 
 class Game:
     def __init__(self, players):
         self.players = players
-        self.rounds = 13
+        self.rounds = 1
         self.current_player = players[0]
         self.state = "inactive"
 
@@ -25,13 +24,11 @@ class Game:
         if self.state != "active":
             self.state = "active"
 
-        self.play_turn()
 
     def play_turn(self):
         self.current_player.start_turn()
         self.current_player.play_turn()
         self.current_player.end_turn()
-        self.next_turn()
 
     def next_turn(self):
         current_index = self.players.index(self.current_player)
@@ -41,10 +38,9 @@ class Game:
         else:
             self.current_player = self.players[current_index + 1]
 
+
         if self.rounds > 13:
             self.end_game()
-        else:
-            self.play_turn()
 
     def end_game(self):
         player_scores = []

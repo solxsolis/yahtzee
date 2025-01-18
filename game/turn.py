@@ -1,5 +1,7 @@
 from game.dice import Die
 from game.categories import Category
+from game.exceptions import NoRollsLeftError
+
 
 class Turn:
     def __init__(self, yahtzee=False):
@@ -48,6 +50,9 @@ class Turn:
                 if die.get_active():
                     die.roll()
             self.rolls -= 1
+
+        else:
+            raise NoRollsLeftError()
 
         self.update_values()
 
@@ -116,7 +121,6 @@ class Turn:
             return self.calculate_xn(5)
         elif cat == Category.CHANCE:
             return self.calculate_sum() + add
-
 
 
 

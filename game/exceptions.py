@@ -11,3 +11,7 @@ class NoTurnsLeftError(Exception):
 class CategoryDoesNotExistError(Exception):
     def __init__(self, category):
         super().__init__(f"Category '{category}' does not exist.")
+
+class NoRollsLeftError(Exception):
+    def __init__(self, message="No rolls left."):
+        super().__init__(message)

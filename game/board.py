@@ -1,6 +1,3 @@
-from game.dice import Die
-from game.categories import Category
-from game.turn import Turn
 from game.exceptions import CategoryPlayedError
 
 class Board:
@@ -24,7 +21,6 @@ class Board:
             raise CategoryPlayedError(category)
         self.categories_score[category.value] = score
         self.score += score
-
 
 
 

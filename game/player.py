@@ -1,5 +1,4 @@
 from game.board import Board
-from game.categories import Category
 from game.turn import Turn
 from game.exceptions import *
 
@@ -43,5 +42,5 @@ class Player:
         try:
             self.board.add_score(category, score)
         except CategoryPlayedError as e:
-            print(e)
+            raise e
 
