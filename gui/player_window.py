@@ -164,7 +164,7 @@ class PlayerWindow(tk.Toplevel):
     def update_dice_display(self):
         if not self.player.current_turn:
             for lbl in self.dice_labels:
-                lbl.config(text="0", bg="SystemButtonFace")
+                lbl.config(text="", bg="SystemButtonFace")
             return
 
         dice_vals = self.player.current_turn.get_dice_values()
