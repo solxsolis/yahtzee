@@ -19,70 +19,65 @@ class PlayerWindow(tk.Toplevel):
         self.update_dice_display()
 
     def create_widgets(self):
-        dice_frame = tk.Frame(self, relief="groove", borderwidth=2)
-        dice_frame.pack(pady=5)
-        tk.Label(dice_frame, text=f"{self.player.name}'s Dice", font=("Helvetica", 14)).pack()
+        self.dice_frame = tk.Frame(self)
+        self.dice_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
 
-        dice_row = tk.Frame(dice_frame)
-        dice_row.pack(pady=5)
+        dice_title = tk.Label(self.dice_frame, text=f"{self.player.name}'s Dice", font=("Helvetica", 14))
+        dice_title.grid(row=0, column=0, columnspan=5, pady=5)
+
+        self.dice_labels = []
         for i in range(5):
-            lbl = tk.Label(dice_row, text="0", font=("Helvetica", 16), width=4, relief="solid")
-            lbl.grid(row=0, column=i, padx=5)
-            lbl.bind("<Button-1>", lambda e, idx=i: self.toggle_die(idx))
+            lbl = tk.Label(self.dice_frame, text="0", width=4, relief="solid", font=("Helvetica", 16))
+            lbl.grid(row=1, column=i, padx=5)
             self.dice_labels.append(lbl)
 
-        btn_frame = tk.Frame(self)
-        btn_frame.pack(pady=5)
+        self.btn_frame = tk.Frame(self)
+        self.btn_frame.grid(row=1, column=0, columnspan=3, pady=5)
 
-        self.roll_btn = tk.Button(btn_frame, text="Roll", command=self.roll_dice)
+        self.roll_btn = tk.Button(self.btn_frame, text="Roll", command=self.roll_dice)
         self.roll_btn.grid(row=0, column=0, padx=10)
 
-        self.play_btn = tk.Button(btn_frame, text="Play", command=self.play_category)
+        self.play_btn = tk.Button(self.btn_frame, text="Play", command=self.play_category)
         self.play_btn.grid(row=0, column=1, padx=10)
 
-        cat_frame = tk.Frame(self, relief="groove", borderwidth=2)
-        cat_frame.pack(pady=10, fill="x")
-        tk.Label(cat_frame, text="Select Category:").pack(side="left", padx=5)
+        cat_label = tk.Label(self.btn_frame, text="Select Category:")
+        cat_label.grid(row=1, column=0, sticky="e")
+
         self.cat_var = tk.StringVar(value="CHOOSE")
-        self.cat_combobox = ttk.Combobox(
-            cat_frame, textvariable=self.cat_var,
-            values=list(Category.__members__.keys()), state="readonly"
-        )
-        self.cat_combobox.pack(side="left", padx=5)
+        cat_options = list(Category.__members__.keys())
+        self.cat_cb = ttk.Combobox(self.btn_frame, textvariable=self.cat_var, values=cat_options, state="readonly")
+        self.cat_cb.grid(row=1, column=1, padx=5, pady=5, sticky="w")
 
-        sb_frame = tk.Frame(self, relief="groove", borderwidth=2)
-        sb_frame.pack(pady=5, fill="both", expand=True)
-        title_label = tk.Label(sb_frame, text=f"{self.player.name}'s Scoreboard", font=("Helvetica", 14))
-        title_label.pack(pady=5)
+        self.sb_frame = tk.Frame(self, relief="groove", borderwidth=2)
+        self.sb_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
 
-        header_row = tk.Frame(sb_frame)
-        header_row.pack(fill="x")
+        sb_title = tk.Label(self.sb_frame, text=f"{self.player.name}'s Scoreboard", font=("Helvetica", 14))
+        sb_title.grid(row=0, column=0, columnspan=3, pady=5)
 
-        tk.Label(header_row, text="Category", width=12, anchor="w", font=("Helvetica", 12, "bold")).pack(side="left")
-        tk.Label(header_row, text=self.player.name, width=12, anchor="center", font=("Helvetica", 12, "bold")).pack(side="left", padx=5)
+        tk.Label(self.sb_frame, text="Category", font=("Helvetica", 12, "bold")).grid(row=1, column=0, padx=5, sticky="w")
+        tk.Label(self.sb_frame, text=self.player.name, font=("Helvetica", 12, "bold")).grid(row=1, column=1, padx=5, sticky="w")
 
-        opp = self.get_opponent()
-        opp_name = opp.name if opp else "Opponent"
-        tk.Label(header_row, text=opp_name, width=12, anchor="center", font=("Helvetica", 12, "bold")).pack(side="left", padx=5)
+        opponent = self.get_opponent()
+        opponent_name = opponent.name if opponent else "Opponent"
+        tk.Label(self.sb_frame, text=opponent_name, font=("Helvetica", 12, "bold")).grid(row=1, column=2, padx=5, sticky="w")
 
-        self.table_frame = tk.Frame(sb_frame)
-        self.table_frame.pack(fill="x", padx=5, pady=5)
+        self.score_labels = {}
 
+        categories = list(Category.__members__.keys())
 
-        for cat_name in Category.__members__.keys():
-            row_frame = tk.Frame(self.table_frame)
-            row_frame.pack(fill="x", pady=2)
+        row_index = 2
+        for cat_name in categories:
+            cat_label = tk.Label(self.sb_frame, text=cat_name, width=12, relief="ridge")
+            cat_label.grid(row=row_index, column=0, padx=5, pady=2, sticky="w")
 
-            lbl_cat = tk.Label(row_frame, text=cat_name, width=12, anchor="w", relief="ridge")
-            lbl_cat.pack(side="left")
+            lbl_player_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+            lbl_player_score.grid(row=row_index, column=1, padx=5, pady=2, sticky="e")
 
-            lbl_player_score = tk.Label(row_frame, text="", width=6, anchor="e", relief="ridge")
-            lbl_player_score.pack(side="left", padx=5)
-
-            lbl_opp_score = tk.Label(row_frame, text="", width=6, anchor="e", relief="ridge")
-            lbl_opp_score.pack(side="left", padx=5)
+            lbl_opp_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+            lbl_opp_score.grid(row=row_index, column=2, padx=5, pady=2, sticky="e")
 
             self.score_labels[cat_name] = (lbl_player_score, lbl_opp_score)
+            row_index += 1
 
     def toggle_die(self, idx):
         if not self.is_player_turn():
