@@ -5,9 +5,7 @@ class Board:
         if categories_score:
             self.categories_score = categories_score
         else:
-            self.categories_score = []
-            for i in range (0, 13):
-                self.categories_score.append(0)
+            self.categories_score = [None]*13
         self.score = score
 
     def get_categories_score(self):
@@ -17,7 +15,7 @@ class Board:
         return self.score
 
     def add_score(self, category, score):
-        if self.categories_score[category.value] != 0:
+        if self.categories_score[category.value] is not None:
             raise CategoryPlayedError(category)
         self.categories_score[category.value] = score
         self.score += score
