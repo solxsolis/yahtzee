@@ -13,7 +13,9 @@ class PlayerWindow(tk.Toplevel):
         self.title(f"Yahtzee - {self.player.name}")
         self.dice_labels = []
         self.score_labels = {}
-        self.category_buttons = {}
+
+        self.dice_images = []
+        self.category_images = {}
 
         self.selected_category = None
         self.previewed_score = 0
@@ -23,14 +25,22 @@ class PlayerWindow(tk.Toplevel):
         self.update_dice_display()
 
     def create_widgets(self):
+
+        for face_val in range(1, 7):
+            image_file = f"images/die{face_val}.png"
+            dice_img = tk.PhotoImage(file=image_file)
+            self.dice_images.append(dice_img)
+
         self.dice_frame = tk.Frame(self)
-        self.dice_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
+        self.dice_frame.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
         dice_title = tk.Label(self.dice_frame, text=f"{self.player.name}'s Dice", font=("Helvetica", 14))
         dice_title.grid(row=0, column=0, columnspan=5, pady=5)
 
+        blank_file = f"images/blank.png"
+        blank_img = tk.PhotoImage(file=blank_file)
         for i in range(5):
-            lbl = tk.Label(self.dice_frame, text="", width=4, relief="solid", font=("Helvetica", 16))
+            lbl = tk.Label(self.dice_frame, image=blank_img, bg="SystemButtonFace", relief="raised")
             lbl.grid(row=1, column=i, padx=5)
             lbl.bind("<Button-1>", lambda e, idx=i: self.toggle_die(idx))
             self.dice_labels.append(lbl)
@@ -64,8 +74,13 @@ class PlayerWindow(tk.Toplevel):
 
         row_index = 2
         for cat_name in categories:
-            cat_button = tk.Button(self.sb_frame, text=cat_name, width=12, relief="ridge", command=lambda c=cat_name: self.select_category(c))
-            cat_button.grid(row=row_index, column=0, padx=5, sticky="w")
+            image_file = f"images/cat_{cat_name.lower()}.png"
+            cat_img = tk.PhotoImage(file=image_file)
+            self.category_images[cat_name] = cat_img
+
+            cat_button = tk.Button(self.sb_frame, image=self.category_images[cat_name], command=lambda c=cat_name: self.select_category(c))
+            cat_button.grid(row=row_index, column=0, padx=2, pady=2, sticky="w")
+            self.score_labels[cat_name] = cat_button
 
             lbl_player_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
             lbl_player_score.grid(row=row_index, column=1, padx=5, pady=2, sticky="e")
@@ -202,19 +217,24 @@ class PlayerWindow(tk.Toplevel):
 
 
     def update_dice_display(self):
+        blank_file = f"images/blank.png"
+        blank_img = tk.PhotoImage(file=blank_file)
         if not self.player.current_turn:
             for lbl in self.dice_labels:
-                lbl.config(text="", bg="SystemButtonFace")
+                lbl.config(image=blank_img, bg="SystemButtonFace")
             return
 
         dice_vals = self.player.current_turn.get_dice_values()
         for i, val in enumerate(dice_vals):
             lbl = self.dice_labels[i]
-            lbl.config(text=str(val))
-            if not self.player.current_turn.dice[i].get_active():
-                lbl.config(bg="lightgray")
+            if val == 0:
+                lbl.config(image=blank_img)
             else:
-                lbl.config(bg="white")
+                lbl.config(image=self.dice_images[val-1])
+            if not self.player.current_turn.dice[i].get_active():
+                lbl.config(relief="sunken", bd=3)
+            else:
+                lbl.config(relief="raised", bd=3)
 
     def update_scoreboard(self):
         player_scores = self.player.board.categories_score

@@ -1,9 +1,5 @@
 gui:
-    -when not player's turn the buttons become inactive
-    -dropdown of categories -> buttons that become inactive after category has been played
-    -make the fields squares
-    -add pictures
-    -when clicking on the category the score to be is displayed
+    -add background
     -input of player name
 
 connection:
