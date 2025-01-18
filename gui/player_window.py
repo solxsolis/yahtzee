@@ -20,6 +20,9 @@ class PlayerWindow(tk.Toplevel):
         self.selected_category = None
         self.previewed_score = 0
 
+        self.left_cats = list(Category.__members__.keys())[:6]
+        self.right_cats = list(Category.__members__.keys())[6:]
+
         self.create_widgets()
         self.update_scoreboard()
         self.update_dice_display()
@@ -65,30 +68,48 @@ class PlayerWindow(tk.Toplevel):
 
         tk.Label(self.sb_frame, text="Category", font=("Helvetica", 12, "bold")).grid(row=1, column=0, padx=5, sticky="w")
         tk.Label(self.sb_frame, text=self.player.name, font=("Helvetica", 12, "bold")).grid(row=1, column=1, padx=5, sticky="w")
+        tk.Label(self.sb_frame, text="Opponent", font=("Helvetica", 12, "bold")).grid(row=1, column=2, padx=5, sticky="w")
 
-        opponent = self.get_opponent()
-        opponent_name = opponent.name if opponent else "Opponent"
-        tk.Label(self.sb_frame, text=opponent_name, font=("Helvetica", 12, "bold")).grid(row=1, column=2, padx=5, sticky="w")
-
-        categories = list(Category.__members__.keys())
+        tk.Label(self.sb_frame, text="Category", font=("Helvetica", 12, "bold")).grid(row=1, column=3, padx=5, sticky="w")
+        tk.Label(self.sb_frame, text=self.player.name, font=("Helvetica", 12, "bold")).grid(row=1, column=4, padx=5, sticky="w")
+        tk.Label(self.sb_frame, text="Opponent", font=("Helvetica", 12, "bold")).grid(row=1, column=5, padx=5, sticky="w")
 
         row_index = 2
-        for cat_name in categories:
-            image_file = f"images/cat_{cat_name.lower()}.png"
-            cat_img = tk.PhotoImage(file=image_file)
-            self.category_images[cat_name] = cat_img
+        max_rows = len(self.right_cats)
+        for i in range(max_rows):
+            if i < max_rows - 1:
+                left_cat_name = self.left_cats[i]
+                left_image_file = f"images/cat_{left_cat_name.lower()}.png"
+                left_cat_img = tk.PhotoImage(file=left_image_file)
+                self.category_images[left_cat_name] = left_cat_img
 
-            cat_button = tk.Button(self.sb_frame, image=self.category_images[cat_name], command=lambda c=cat_name: self.select_category(c))
-            cat_button.grid(row=row_index, column=0, padx=2, pady=2, sticky="w")
-            self.score_labels[cat_name] = cat_button
+                left_cat_button = tk.Button(self.sb_frame, image=left_cat_img, command=lambda c=left_cat_name: self.select_category(c))
+                left_cat_button.grid(row=row_index, column=0, padx=2, pady=2, sticky="w")
 
-            lbl_player_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
-            lbl_player_score.grid(row=row_index, column=1, padx=5, pady=2, sticky="e")
+                left_lbl_player_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+                left_lbl_player_score.grid(row=row_index, column=1, padx=5, pady=2, sticky="e")
 
-            lbl_opp_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
-            lbl_opp_score.grid(row=row_index, column=2, padx=5, pady=2, sticky="e")
+                left_lbl_opp_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+                left_lbl_opp_score.grid(row=row_index, column=2, padx=5, pady=2, sticky="e")
 
-            self.score_labels[cat_name] = (cat_button, lbl_player_score, lbl_opp_score)
+                self.score_labels[left_cat_name] = (left_cat_button, left_lbl_player_score, left_lbl_opp_score)
+
+            right_cat_name = self.right_cats[i]
+            right_image_file = f"images/cat_{right_cat_name.lower()}.png"
+            right_cat_img = tk.PhotoImage(file=right_image_file)
+            self.category_images[right_cat_name] = right_cat_img
+
+            right_cat_button = tk.Button(self.sb_frame, image=right_cat_img,
+                                        command=lambda c=right_cat_name: self.select_category(c))
+            right_cat_button.grid(row=row_index, column=3, padx=2, pady=2, sticky="w")
+
+            right_lbl_player_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+            right_lbl_player_score.grid(row=row_index, column=4, padx=5, pady=2, sticky="e")
+
+            right_lbl_opp_score = tk.Label(self.sb_frame, text="", width=6, relief="ridge", anchor="e")
+            right_lbl_opp_score.grid(row=row_index, column=5, padx=5, pady=2, sticky="e")
+
+            self.score_labels[right_cat_name] = (right_cat_button, right_lbl_player_score, right_lbl_opp_score)
             row_index += 1
 
         self.running_score_label = tk.Label(self.sb_frame, text="Score:", font=("Helvetica", 12, "bold"))
