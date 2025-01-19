@@ -93,7 +93,7 @@ class Turn:
 
     def get_score(self, cat):
         add = 0
-        if self.calculate_xn(5) == 50:
+        if self.calculate_xn(5) == 50 and self.yahtzee:
             add = 50
         if cat == Category.ONE:
             return self.calculate_digits(1) + add

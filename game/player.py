@@ -31,7 +31,7 @@ class Player:
         if not self.active:
             self.active = True
             self.turns -= 1
-            self.current_turn = Turn()
+            self.current_turn = Turn(self.board.get_yahtzee())
 
     def end_turn(self):
         if self.active:
