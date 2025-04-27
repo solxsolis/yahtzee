@@ -1,6 +1,7 @@
 import tkinter as tk
 from gui.player_window import PlayerWindow
 from gui.rules_window import RulesWindow
+from game.bot import Bot
 
 class YahtzeeGUI(tk.Tk):
     def __init__(self, game):
@@ -33,6 +34,37 @@ class YahtzeeGUI(tk.Tk):
         for player in self.game.players:
             pw = PlayerWindow(self, player, self.game)
             self.player_windows.append(pw)
+
+        self._start_current_player()
+
+    def _start_current_player(self):
+        cp = self.game.get_current_player()
+        cp.start_turn()
+
+        for w in self.player_windows:
+            w.update_scoreboard()
+            w.update_dice_display()
+            w.update_button_states()
+
+        if isinstance(cp, Bot):
+            self.after(300, self._do_bot_move)
+
+    def _do_bot_move(self):
+        bot = self.game.get_current_player()
+        bot.play_turn()
+
+        for w in self.player_windows:
+            w.update_scoreboard()
+            w.update_dice_display()
+            w.update_button_states()
+
+        winner, scores = self.game.next_turn()
+        if winner or self.game.get_state() == "finished":
+            self.player_windows[0].show_end_game_message(winner, scores)
+        else:
+            self._start_current_player()
+
+
 
     def quit_game(self):
         self.destroy()

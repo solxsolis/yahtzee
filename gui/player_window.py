@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 from game.categories import Category
 from game.exceptions import CategoryPlayedError, NoRollsLeftError, ScoringError
+from game.player import Player
+from game.bot import Bot
 
 
 class PlayerWindow(tk.Toplevel):
@@ -29,6 +31,28 @@ class PlayerWindow(tk.Toplevel):
         self.update_scoreboard()
         self.update_dice_display()
         self.update_button_states()
+
+        if isinstance(self.player, Bot) and game.get_current_player() == player:
+            self.after(300, self._do_bot_turn)
+
+    def _do_bot_turn(self):
+        self.player.play_turn()
+        for w in self.master.player_windows:
+            w.update_scoreboard()
+            w.update_dice_display()
+            w.update_button_states()
+
+        winner, scores = self.game.next_turn()
+        if winner or self.game.get_state() == "finished":
+            return self.show_end_game_message(winner, scores)
+
+        next_player = self.game.get_current_player()
+        next_player.start_turn()
+        for w in self.master.player_windows:
+            w.update_scoreboard()
+            w.update_button_states()
+            if isinstance(next_player, Bot) and w.player == next_player:
+                w.after(300, w._do_bot_turn)
 
     def create_widgets(self):
 
