@@ -28,9 +28,9 @@ class Board:
             raise CategoryPlayedError(category)
         self.categories_score[category.value] = score
         self.score += score
-        if not self.yahtzee and category.value == "YAHTZEE" and score != 0:
+        if not self.yahtzee and category == Category.YAHTZEE and score != 0:
             self.yahtzee = True
-        if Category[category] in range (0, 6):
+        if category.value in range(6):
             self.bonus += score
         if self.bonus >= 63:
             self.score += 35
