@@ -33,7 +33,7 @@ class PlayerWindow(tk.Toplevel):
         self.update_button_states()
 
         if isinstance(self.player, Bot) and game.get_current_player() == player:
-            self.after(300, self._do_bot_turn)
+            self.after(150, self._do_bot_turn)
 
     def _do_bot_turn(self):
         self.player.play_turn()
@@ -52,7 +52,7 @@ class PlayerWindow(tk.Toplevel):
             w.update_scoreboard()
             w.update_button_states()
             if isinstance(next_player, Bot) and w.player == next_player:
-                w.after(300, w._do_bot_turn)
+                w.after(150, w._do_bot_turn)
 
     def create_widgets(self):
 
@@ -273,7 +273,7 @@ class PlayerWindow(tk.Toplevel):
         if isinstance(next_player, Bot):
             for w in self.master.player_windows:
                 if w.player == next_player:
-                    w.after(300, w._do_bot_turn)
+                    w.after(150, w._do_bot_turn)
                     break
 
     def get_category_labels(self, cat_name):
