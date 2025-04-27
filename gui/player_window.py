@@ -259,13 +259,22 @@ class PlayerWindow(tk.Toplevel):
         self.update_dice_display()
 
         winner, scores = self.game.next_turn()
-        for w in self.master.player_windows:
-            if w != self and not winner:
-                w.player.start_turn()
-                w.update_scoreboard()
-            w.update_button_states()
+
         if winner or self.game.get_state() == "finished":
-            self.show_end_game_message(winner, scores)
+            return self.show_end_game_message(winner, scores)
+
+        next_player = self.game.get_current_player()
+        for w in self.master.player_windows:
+            if w.player == next_player:
+                w.player.start_turn()
+            w.update_scoreboard()
+            w.update_button_states()
+
+        if isinstance(next_player, Bot):
+            for w in self.master.player_windows:
+                if w.player == next_player:
+                    w.after(300, w._do_bot_turn)
+                    break
 
     def get_category_labels(self, cat_name):
         return self.score_labels.get(cat_name, (None, None, None))

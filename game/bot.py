@@ -49,7 +49,7 @@ class Bot(Player):
     def pick_best_category(self, dice_vals):
         best_category = None
         best_score = -float('inf')
-        for category in self.board.get_categories():
+        for category in Category:
             if self.board.categories_score[category.value] is None:
                 tmp = Turn(yahtzee=self.board.get_yahtzee())
                 tmp.dice_values = dice_vals
