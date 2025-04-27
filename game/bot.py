@@ -1,10 +1,13 @@
 from game.player import Player
 from game.categories import Category
+from game.turn import Turn
 
 from itertools import combinations
 import random
 
 class Bot(Player):
+    SIMULATIONS = 500
+
     def __init__(self, name):
         super().__init__(name)
 
@@ -12,55 +15,65 @@ class Bot(Player):
         if not self.current_turn:
             self.start_turn()
 
-        for i in range(0, 3):
-            self.get_current_turn().roll()
-            self.decide_toggle_dice(self.current_turn.dice, self.current_turn.rolls)
+        turn = self.get_current_turn()
+        turn.roll()
 
-        best_category = self.pick_best_category(self.current_turn.dice)
-        score = self.get_current_turn().get_score(best_category)
+        while turn.get_rolls() > 0:
+            hold_idx = self.decide_toggle_dice(turn.get_dice(), turn.get_rolls())
+            for die in turn.get_dice():
+                should_hold = die.get_idx() in hold_idx
+                if should_hold and die.get_active():
+                    die.toggle()
+                elif not should_hold and not die.get_active():
+                    die.toggle()
+            turn.roll()
+
+        best_category = self.pick_best_category([d.get_value() for d in turn.get_dice()])
+        score = turn.get_score(best_category)
         self.set_score(best_category, score)
 
         self.end_turn()
 
 
-    def decide_toggle_dice(self, current_dice, roll_number):
+    def decide_toggle_dice(self, current_dice, rolls_left):
         best_hold = current_dice
-        best_val = self.simulate_expected_value(current_dice, roll_number)
+        best_val = self.simulate_expected_value([d.get_value() for d in current_dice], (), rolls_left)
 
-        for hold_combination in self.get_possible_holds(current_dice):
-            val = self.simulate_expected_value(hold_combination, roll_number)
-            if val > best_val:
-                best_val = val
-                best_hold = hold_combination
+        for r in range(6):
+            for hold_idxs in combinations(range(5), r):
+                vals = self.simulate_expected_value([d.get_value() for d in current_dice], hold_idxs, rolls_left)
+                if vals > best_val:
+                    best_val, best_hold = vals, hold_idxs
         return best_hold
 
-    def pick_best_category(self, dice):
+    def pick_best_category(self, dice_vals):
         best_category = None
         best_score = -float('inf')
         for category in self.board.get_categories():
-            if category is None:
-                score = self.current_turn.get_score(category)
+            if self.board.categories_score[category.value] is None:
+                tmp = Turn(yahtzee=self.board.get_yahtzee())
+                tmp.dice_values = dice_vals
+                tmp.dice_values_count = [dice_vals.count(v) for v in range(1, 7)]
+                score = tmp.get_score(category)
                 if score > best_score:
                     best_score = score
                     best_category = category
         return best_category
 
-    def simulate_expected_value(self, current_dice, simulation_count=1000):
+    def simulate_expected_value(self, base_vals, hold_idxs, rolls_left):
         total_score = 0
-        dice_to_roll = 5 - len(current_dice)
-
-        for _ in range(simulation_count):
-            dice = current_dice.copy()
-            rolls_left = self.current_turn.rolls
+        held = [base_vals[i] for i in hold_idxs]
+        for _ in range(self.SIMULATIONS):
+            dice = held
             for _ in range(rolls_left):
-                new_dice = [random.randint(1, 6) for _ in range(dice_to_roll)]
-                dice = current_dice + new_dice
+                dice += [random.randint(1, 6) for _ in range(5-len(held))]
+            sim = Turn(yahtzee=self.board.get_yahtzee())
+            sim.dice_values = dice
+            sim.dice_values_count = [dice.count(v) for v in range(1, 7)]
+            cat = self.pick_best_category(dice)
+            total_score += sim.get_score(cat)
 
-            score = self.current_turn.get_score(dice)
-            total_score += score
-
-        expected_value = total_score / simulation_count
-        return expected_value
+        return total_score / self.SIMULATIONS
 
     def get_possible_holds(self, dice):
         # todo only keep "useful" rolls, not to iterate through all of them
