@@ -75,16 +75,4 @@ class Bot(Player):
 
         return total_score / self.SIMULATIONS
 
-    def get_possible_holds(self, dice):
-        # todo only keep "useful" rolls, not to iterate through all of them
-        n = len(dice)
-        holds = []
-
-        for i in range(n+1):
-            for idx in combinations(range(n), i):
-                hold = [dice[j] for j in idx]
-                holds.append(tuple(sorted(hold)))
-        unique = list(set(holds))
-        return [list(hold) for hold in unique]
-
 
