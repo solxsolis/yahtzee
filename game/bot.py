@@ -36,8 +36,8 @@ class Bot(Player):
 
 
     def decide_toggle_dice(self, current_dice, rolls_left):
-        best_hold = current_dice
-        best_val = self.simulate_expected_value([d.get_value() for d in current_dice], (), rolls_left)
+        best_hold = ()
+        best_val = self.simulate_expected_value([d.get_value() for d in current_dice], best_hold, rolls_left)
 
         for r in range(6):
             for hold_idxs in combinations(range(5), r):
@@ -64,7 +64,7 @@ class Bot(Player):
         total_score = 0
         held = [base_vals[i] for i in hold_idxs]
         for _ in range(self.SIMULATIONS):
-            dice = held
+            dice = held[:]
             for _ in range(rolls_left):
                 dice += [random.randint(1, 6) for _ in range(5-len(held))]
             sim = Turn(yahtzee=self.board.get_yahtzee())
