@@ -4,6 +4,7 @@ from game.categories import Category
 from game.exceptions import CategoryPlayedError, NoRollsLeftError, ScoringError
 from game.player import Player
 from game.bot import Bot
+from game.network_player import NetworkPlayer
 
 
 class PlayerWindow(tk.Toplevel):
@@ -33,8 +34,8 @@ class PlayerWindow(tk.Toplevel):
             self.update_dice_display()
             self.update_button_states()
 
-        if isinstance(self.player, Bot) and game.get_current_player() == player:
-            self.after(150, self._do_bot_turn)
+            if isinstance(self.player, Bot) and game.get_current_player() == player:
+                self.after(150, self._do_bot_turn)
 
     def _do_bot_turn(self):
         self.player.play_turn()
@@ -54,6 +55,7 @@ class PlayerWindow(tk.Toplevel):
             w.update_button_states()
             if isinstance(next_player, Bot) and w.player == next_player:
                 w.after(150, w._do_bot_turn)
+                break
 
     def create_widgets(self):
 
@@ -150,6 +152,9 @@ class PlayerWindow(tk.Toplevel):
         self.running_score_opponent.grid(row=row_index, column=2, padx=5, pady=5)
 
     def update_button_states(self):
+        if not self.game:
+            return
+
         if self.game.get_current_player() != self.player:
             self.roll_btn.config(state="disabled")
             self.play_btn.config(state="disabled")
@@ -166,6 +171,10 @@ class PlayerWindow(tk.Toplevel):
             self.play_btn.config(state="disabled")
 
     def select_category(self, cat_name):
+        if isinstance(self.player, NetworkPlayer):
+            self.player.score(Category[cat_name])
+            return
+
         if not self.is_player_turn():
             return
         if not self.player.get_current_turn():
@@ -190,6 +199,9 @@ class PlayerWindow(tk.Toplevel):
             pass
 
     def revert_old_preview(self, old_cat):
+        if not self.game:
+            return
+
         cat_list = list(Category.__members__.keys())
         old_idx = cat_list.index(old_cat)
         old_score = self.player.get_board().get_categories_score()[old_idx]
@@ -199,6 +211,13 @@ class PlayerWindow(tk.Toplevel):
             lbl_player.config(text="", fg="black")
 
     def toggle_die(self, idx):
+        if isinstance(self.player, NetworkPlayer):
+            held = [i for i, lbl in enumerate(self.dice_labels) if lbl['relief']=="sunken"]
+            lbl = self.dice_labels[idx]
+            lbl.config(relief="sunken" if lbl['relief']=="raised" else "raised")
+            self.player.hold(held)
+            return
+
         if not self.is_player_turn():
             return
 
@@ -207,6 +226,10 @@ class PlayerWindow(tk.Toplevel):
             self.update_dice_display()
 
     def roll_dice(self):
+        if isinstance(self.player, NetworkPlayer):
+            self.player.roll()
+            return
+
         if not self.is_player_turn():
             return
 
@@ -223,6 +246,10 @@ class PlayerWindow(tk.Toplevel):
         self.update_button_states()
 
     def play_category(self):
+        if isinstance(self.player, NetworkPlayer):
+            if self.selected_category:
+                self.player.score(Category[self.selected_category])
+            return
 
         if not self.is_player_turn():
             return
@@ -351,7 +378,19 @@ class PlayerWindow(tk.Toplevel):
         return None
 
     def is_player_turn(self):
-        if self.game.current_player != self.player:
+        if self.game.current_player != self.player or not self.game:
             messagebox.showerror("Not Your Turn", f"Wait for {self.game.current_player.name} to finish.")
             return False
         return True
+
+    def render_state(self, msg):
+        if msg.get("id") != self.player.player_id:
+            return
+        for i, val in enumerate(msg["dice"]):
+            self.dice_vars[i].set(str(val))
+
+        self.rolls_left = msg["roll_left"]
+        self.roll_button.config(state=tk.NORMAL if self.rolls_left > 0 else tk.DISABLED)
+
+        my_turn = (msg["current_player"] == self.player.player_id)
+        self.enable_controls(my_turn)

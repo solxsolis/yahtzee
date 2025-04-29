@@ -12,6 +12,7 @@ class YahtzeeGUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.game = None
+
         self.title("Yahtzee Main Menu")
         self.geometry("300x300")
 
@@ -40,6 +41,14 @@ class YahtzeeGUI(tk.Tk):
         self.player_windows = []
         self.rules_window = None
         self.net_client = None
+
+        # if self.mode == "local":
+        #     pass
+        # else:
+        #     self.net_client = NetworkClient(self.host, self.port, self._on_state)
+        #     player = NetworkPlayer(self.player_id, self.net_client)
+        #     pw = PlayerWindow(self, player, game=None)
+        #     self.player_windows.append(pw)
 
     def start_game(self):
         mode = self.mode_var.get()
@@ -79,13 +88,14 @@ class YahtzeeGUI(tk.Tk):
 
     def ask_host_port(self, default, default_port):
         dlg = tk.Toplevel(self)
-        tk.Label(dlg, text="Host:").grid(row=0, column=0)
+        dlg.title("Connect to host")
+        tk.Label(dlg, text="Host:").grid(row=0, column=0, padx=5, pady=5)
         hvar = tk.StringVar(value=default)
-        tk.Entry(dlg, textvariable=hvar).grid(row=0, column=1)
-        tk.Label(dlg, text="Port:").grid(row=1, column=0)
+        tk.Entry(dlg, textvariable=hvar).grid(row=0, column=1, padx=5, pady=5)
+        tk.Label(dlg, text="Port:").grid(row=1, column=0, padx=5, pady=5)
         pvar = tk.StringVar(value=default_port)
-        tk.Entry(dlg, textvariable=pvar).grid(row=1, column=1)
-        tk.Button(dlg, text="OK", command=dlg.destroy).grid(row=2, column=0, columnspan=2)
+        tk.Entry(dlg, textvariable=pvar).grid(row=1, column=1, padx=5, pady=5)
+        tk.Button(dlg, text="OK", command=dlg.destroy).grid(row=2, column=0, columnspan=2, pady=10)
         self.wait_window(dlg)
         return hvar.get(), int(pvar.get())
 
