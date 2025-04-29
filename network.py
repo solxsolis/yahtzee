@@ -53,15 +53,14 @@ class GameServer:
 
             state = {
                 "type": "state",
-                "current_player": self.game.cuurent_player_idx,
+                "current_player": self.game.get_players().index(player),
                 "dice": turn.get_dice_values(),
                 "rolls_left": turn.get_rolls(),
             }
 
-            for conn, pid in self.handlers:
-                msg = state.copy()
-                msg["id"] = pid
-                conn.sendall((json.dumps(msg)+"\n").encode())
+            data = json.dumps(state) + "\n"
+            for conn, _ in self.handlers:
+                conn.send(data.encode())
 
         buffers = ["", ""]
         broadcast_state()
@@ -78,8 +77,8 @@ class GameServer:
                         cmd = json.loads(line)
                     except json.JSONDecodeError:
                         continue
-
-                    if self.game.current_player_idx == pid:
+                    player_idx = self.game.get_players().index(self.game.get_current_player())
+                    if player_idx == pid:
                         self._apply_command(cmd)
                     broadcast_state()
 

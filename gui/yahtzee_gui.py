@@ -5,7 +5,7 @@ from gui.rules_window import RulesWindow
 from game.bot import Bot
 from game.play import Game
 from game.human import Human
-from connection.network import NetworkClient, GameServer
+from network import NetworkClient, GameServer
 from game.network_player import NetworkPlayer
 
 class YahtzeeGUI(tk.Tk):
@@ -65,9 +65,16 @@ class YahtzeeGUI(tk.Tk):
             self.net_client = NetworkClient("127.0.0.1", 9999, self._on_state)
             players = [NetworkPlayer(0, self.net_client), NetworkPlayer(1, self.net_client)]
         elif mode == "hh_join":
-            host, port = self.ask_host_port(default = "127.0.0.1", default_port = 9999)
+            if hasattr(self, "_host_override"):
+                host = self._host_override
+                port = self._port_override
+                player_id = self._id_override
+            else:
+                host, port = self.ask_host_port(default = "127.0.0.1", default_port = 9999)
+                player_id = 0
             self.net_client = NetworkClient(host, port, self._on_state)
-            players = [NetworkPlayer(0, self.net_client), NetworkPlayer(1, self.net_client)]
+            players = [NetworkPlayer(player_id, self.net_client)]
+
         else:
             messagebox.showerror("Error", f"Invalid mode: {mode}")
             return
