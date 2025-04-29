@@ -17,7 +17,10 @@ class NetworkClient:
             buf += data
             while "\n" in buf:
                 line, buf = buf.split("\n", 1)
-                msg = json.loads(line)
+                try:
+                    msg = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
                 self.on_state(msg)
 
     def send(self, msg: dict):
@@ -55,9 +58,10 @@ class GameServer:
                 "rolls_left": turn.get_rolls(),
             }
 
-            data = json.dumps(state) + "\n"
-            for conn, _ in self.handlers:
-                conn.sendall(data.encode())
+            for conn, pid in self.handlers:
+                msg = state.copy()
+                msg["id"] = pid
+                conn.sendall((json.dumps(msg)+"\n").encode())
 
         buffers = ["", ""]
         broadcast_state()
@@ -70,7 +74,10 @@ class GameServer:
                 buffers[idx] += data
                 while "\n" in buffers[idx]:
                     line, buffers[idx] = buffers[idx].split("\n", 1)
-                    cmd = json.loads(line)
+                    try:
+                        cmd = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
 
                     if self.game.current_player_idx == pid:
                         self._apply_command(cmd)
