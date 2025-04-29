@@ -28,9 +28,10 @@ class PlayerWindow(tk.Toplevel):
         self.configure(bg="#addbf7")
 
         self.create_widgets()
-        self.update_scoreboard()
-        self.update_dice_display()
-        self.update_button_states()
+        if self.game:
+            self.update_scoreboard()
+            self.update_dice_display()
+            self.update_button_states()
 
         if isinstance(self.player, Bot) and game.get_current_player() == player:
             self.after(150, self._do_bot_turn)
@@ -317,6 +318,8 @@ class PlayerWindow(tk.Toplevel):
                 lbl.config(relief="raised", bd=3)
 
     def update_scoreboard(self):
+        if not self.game:
+            return
         player_scores = self.player.board.categories_score
         opponent = self.get_opponent()
         opp_scores = opponent.board.categories_score if opponent else []
@@ -340,6 +343,8 @@ class PlayerWindow(tk.Toplevel):
         self.running_score_opponent.config(text=str(opp_total) if opp_total else "0")
 
     def get_opponent(self):
+        if not self.game:
+            return
         for p in self.game.get_players():
             if p != self.player:
                 return p
